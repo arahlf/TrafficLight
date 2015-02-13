@@ -13,17 +13,17 @@ public class SerialPortTrafficLightController implements TrafficLightController 
     }
 
     @Override
-    public void light(Signal signal) {
-        _writeCommand("light " + signal.toString().toLowerCase());
+    public void light(Lamp lamp) {
+        _writeCommand("light " + lamp.toString().toLowerCase());
     }
 
     @Override
-    public void flash(Signal signal) {
-        _writeCommand("flash " + signal.toString().toLowerCase());
+    public void flash(Lamp lamp) {
+        _writeCommand("flash " + lamp.toString().toLowerCase());
     }
 
     @Override
-    public void turnLightsOff() {
+    public void turnOff() {
         _writeCommand("lights off");
     }
 

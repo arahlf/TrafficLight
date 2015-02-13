@@ -10,8 +10,6 @@ public class Main {
     public static void main(String[] args) {
         String[] portNames = SerialPortList.getPortNames();
 
-        Signal signal = Signal.RED;
-
         if (portNames.length == 0) {
             System.out.println("No ports found.");
             return;
@@ -47,25 +45,25 @@ public class Main {
 
                 switch (command) {
                     case "light red":
-                        trafficLightController.light(Signal.RED);
+                        trafficLightController.light(Lamp.RED);
                         break;
                     case "light yellow":
-                        trafficLightController.light(Signal.YELLOW);
+                        trafficLightController.light(Lamp.YELLOW);
                         break;
                     case "light green":
-                        trafficLightController.light(Signal.GREEN);
+                        trafficLightController.light(Lamp.GREEN);
                         break;
                     case "flash red":
-                        trafficLightController.flash(Signal.RED);
+                        trafficLightController.flash(Lamp.RED);
                         break;
                     case "flash yellow":
-                        trafficLightController.flash(Signal.YELLOW);
+                        trafficLightController.flash(Lamp.YELLOW);
                         break;
                     case "flash green":
-                        trafficLightController.flash(Signal.GREEN);
+                        trafficLightController.flash(Lamp.GREEN);
                         break;
                     case "lights off":
-                        trafficLightController.turnLightsOff();
+                        trafficLightController.turnOff();
                         break;
                     default:
                         System.out.println("Unrecognized command.");

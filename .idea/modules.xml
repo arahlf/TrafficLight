@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ArduinoStoplight.iml" filepath="$PROJECT_DIR$/ArduinoStoplight.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TrafficLight.iml" filepath="$PROJECT_DIR$/TrafficLight.iml" />
     </modules>
   </component>
 </project>

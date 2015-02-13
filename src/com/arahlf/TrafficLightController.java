@@ -5,9 +5,9 @@ package com.arahlf;
  */
 public interface TrafficLightController {
 
-    public void light(Signal signal);
+    public void light(Lamp lamp);
 
-    public void flash(Signal signal);
+    public void flash(Lamp lamp);
 
-    public void turnLightsOff();
+    public void turnOff();
 }
