@@ -1,6 +1,9 @@
-int RED_PIN = 4;
-int YELLOW_PIN = 3;
-int GREEN_PIN = 2;
+const int RED_PIN = 4;
+const int YELLOW_PIN = 3;
+const int GREEN_PIN = 2;
+
+const int pins[] = { RED_PIN, YELLOW_PIN, GREEN_PIN };
+const int pinCount = sizeof(pins) / sizeof(int);
 
 int flashingPin = -1;
 
@@ -30,21 +33,15 @@ void loop() {
         Serial.println(command);
 
         if (command == "light red") {
-            digitalWrite(RED_PIN, HIGH);
-            digitalWrite(YELLOW_PIN, LOW);
-            digitalWrite(GREEN_PIN, LOW);
+            lightPinExclusive(RED_PIN);
             flashingPin = -1;
         }
         else if (command == "light yellow") {
-            digitalWrite(RED_PIN, LOW);
-            digitalWrite(YELLOW_PIN, HIGH);
-            digitalWrite(GREEN_PIN, LOW);
+            lightPinExclusive(YELLOW_PIN);
             flashingPin = -1;
         }
         else if (command == "light green") {
-            digitalWrite(RED_PIN, LOW);
-            digitalWrite(YELLOW_PIN, LOW);
-            digitalWrite(GREEN_PIN, HIGH);
+            lightPinExclusive(GREEN_PIN);
             flashingPin = -1;
         }
         else if (command == "flash red") {
@@ -66,10 +63,14 @@ void loop() {
             flashingPin = GREEN_PIN;
         }
         else if (command == "lights off") {
-            digitalWrite(RED_PIN, LOW);
-            digitalWrite(YELLOW_PIN, LOW);
-            digitalWrite(GREEN_PIN, LOW);
+            lightPinExclusive(-1);
             flashingPin = -1;
         }
+    }
+}
+
+void lightPinExclusive(int pin) {
+    for (int i = 0; i < pinCount; i++) {
+        digitalWrite(pins[i], pins[i] == pin ? HIGH : LOW);
     }
 }
