@@ -45,21 +45,15 @@ void loop() {
             flashingPin = -1;
         }
         else if (command == "flash red") {
-            digitalWrite(RED_PIN, LOW);
-            digitalWrite(YELLOW_PIN, LOW);
-            digitalWrite(GREEN_PIN, LOW);
+            lightPinExclusive(-1);
             flashingPin = RED_PIN;
         }
         else if (command == "flash yellow") {
-            digitalWrite(RED_PIN, LOW);
-            digitalWrite(YELLOW_PIN, LOW);
-            digitalWrite(GREEN_PIN, LOW);
+            lightPinExclusive(-1);
             flashingPin = YELLOW_PIN;
         }
         else if (command == "flash green") {
-            digitalWrite(RED_PIN, LOW);
-            digitalWrite(YELLOW_PIN, LOW);
-            digitalWrite(GREEN_PIN, LOW);
+            lightPinExclusive(-1);
             flashingPin = GREEN_PIN;
         }
         else if (command == "lights off") {
