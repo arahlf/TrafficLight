@@ -46,13 +46,7 @@ var portName = '/dev/tty.usbmodem1421';
 var serialPort = new SerialPort(portName, { baudRate: 9600 });
 
 serialPort.open(function(error) {
-    serialPort.on('data', function(data) {
-      console.log('data received: ' + data);
-    });
-
     console.log('Serial port opened, starting server.');
 
     var server = app.listen(8080);
-
-    serialPort.write('light green');
 });
