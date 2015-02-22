@@ -5,7 +5,7 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>1D8AED6F-F5FE-4CD2-860E-11B9F944F28A</string>
+	<string>61A9FAD2-D259-49D6-B0E6-A8B284D3F6C5</string>
 	<key>IDESourceControlProjectName</key>
 	<string>TrafficLightRemote</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
@@ -14,11 +14,11 @@
 		<string>https://github.com/arahlf/TrafficLight.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>remotes/ios/TrafficLightRemote/TrafficLightRemote.xcodeproj</string>
+	<string>remotes/ios/TrafficLightRemote.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>9B3588C55C539045E6808389BFE473A9E8177D39</key>
-		<string>../../../../..</string>
+		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/arahlf/TrafficLight.git</string>
