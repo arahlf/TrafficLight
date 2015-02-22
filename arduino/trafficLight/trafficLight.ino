@@ -34,7 +34,7 @@ void loop() {
 
     if (Serial.available()) {
 
-        String command = Serial.readString();
+        String command = Serial.readStringUntil('$');
 
         Serial.println(command);
 

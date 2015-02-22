@@ -29,7 +29,7 @@ public class SerialPortTrafficLightController implements TrafficLightController 
 
     private void _writeCommand(String command) {
         try {
-            _serialPort.writeString(command);
+            _serialPort.writeString(command + "$");
         } catch (SerialPortException e) {
             e.printStackTrace();
         }

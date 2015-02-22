@@ -24,11 +24,23 @@ app.put('/trafficlight', function(req, res) {
         else {
             var command = light === 'on' ? 'light' : 'flash';
 
-            serialPort.write(command + ' ' + lamp);
+            console.log('Processing command: ' + command + ' ' + lamp);
 
-            console.log(command + ' ' + lamp);
-            
-            res.sendStatus(204);
+            serialPort.write(command + ' ' + lamp + '$', function(writeError) {
+                if (writeError) {
+                    serialPort.status(500).send('Error writing command: ' + e);
+                }
+                else {
+                    serialPort.drain(function(drainError) {
+                        if (drainError) {
+                            serialPort.status(500).send('Error draining serial port: ' + e);
+                        }
+                        else {
+                            res.sendStatus(204);
+                        }
+                    });
+                }
+            });
         }
     }
     else if (light === 'off') {
