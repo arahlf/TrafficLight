@@ -54,11 +54,12 @@ app.put('/trafficlight', function(req, res) {
     }
 });
 
+serialPort.on('error', function(error) {
+    console.log('Error opening serial port: ' + error);
+});
+
 serialPort.open(function(error) {
-    if (error) {
-        console.log('Error opening serial port: ' + error);
-    }
-    else {
+    if (!error) {
         console.log('Serial port opened, starting server.');
 
         server = app.listen(8080);
