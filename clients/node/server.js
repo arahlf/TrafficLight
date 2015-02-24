@@ -3,6 +3,9 @@ var bodyParser = require('body-parser');
 var SerialPort = require('serialport').SerialPort;
 
 var app = express();
+var portName = '/dev/tty.usbmodem1411';
+var serialPort = new SerialPort(portName, { baudRate: 9600 });
+var server;
 
 app.use(bodyParser.json());
 
@@ -11,8 +14,6 @@ app.get('/trafficlight', function(req, res) {
 });
 
 app.put('/trafficlight', function(req, res) {
-    // body can look like: { "light": "on|flashing|off", "lamp": "red|yellow|green" }
-
     var light = req.body.light;
     var lamp = req.body.lamp;
     var lamps = ['red', 'yellow', 'green'];
@@ -53,12 +54,13 @@ app.put('/trafficlight', function(req, res) {
     }
 });
 
-
-var portName = '/dev/tty.usbmodem1421';
-var serialPort = new SerialPort(portName, { baudRate: 9600 });
-
 serialPort.open(function(error) {
-    console.log('Serial port opened, starting server.');
+    if (error) {
+        console.log('Error opening serial port: ' + error);
+    }
+    else {
+        console.log('Serial port opened, starting server.');
 
-    var server = app.listen(8080);
+        server = app.listen(8080);
+    }
 });
