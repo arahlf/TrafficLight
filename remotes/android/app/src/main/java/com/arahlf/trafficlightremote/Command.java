@@ -15,7 +15,6 @@ public class Command {
 
         JSONObject params = new JSONObject();
 
-        // TODO test to see if it throws IndexOutOfBoundsException
         for (int i = 0; i < paramList.length; i+= 2) {
             try {
                 params.put(paramList[i], paramList[i + 1]);

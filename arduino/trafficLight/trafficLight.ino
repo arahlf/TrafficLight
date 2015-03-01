@@ -36,8 +36,6 @@ void loop() {
 
         String command = Serial.readStringUntil('$');
 
-        Serial.println(command);
-
         if (command == "light red") {
             lightPinExclusive(RED_PIN);
         }
