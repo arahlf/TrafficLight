@@ -1,5 +1,4 @@
 var getJson = require('./get').json;
-var TrafficLight = require('./trafficlight').TrafficLight;
 
 var MONITOR_INTERVAL = 1000 * 5;
 
@@ -7,15 +6,15 @@ var serialPortPath = '/dev/tty.usbmodem1421';
 var jenkinsUrl = 'http://localhost:8080/api/json?pretty=true&tree=jobs[color,name]';
 
 var states = [
-    { color: 'blue', method: 'lightGreen' },
-    { color: 'blue_anime', method: 'flashGreen' },
-    { color: 'yellow', method: 'lightYellow' },
-    { color: 'yellow_anime', method: 'flashYellow' },
-    { color: 'red', method: 'lightRed' },
-    { color: 'red_anime', method: 'flashRed' },
+    { color: 'blue', command: 'light green' },
+    { color: 'blue_anime', command: 'flash green' },
+    { color: 'yellow', command: 'light yellow' },
+    { color: 'yellow_anime', command: 'flash yellow' },
+    { color: 'red', command: 'light red' },
+    { color: 'red_anime', command: 'flash red' },
 ];
 
-var trafficLight = new TrafficLight(serialPortPath);
+var trafficLightSerialPort = new SerialPort(serialPortPath, { baudRate: 9600 });
 
 function parseState(job) {
     for (var i = 0; i < states.length; i++) {
@@ -29,8 +28,24 @@ function parseState(job) {
     return states[0];
 }
 
-function monitorJenkins() {
+function writeSerialPortCommand(command) {
+    console.log('Writing command: ' + command);
 
+    trafficLightSerialPort.write(command + '$', function(writeError) {
+        if (writeError) {
+            console.error('Error writing command: ' + e);
+        }
+        else {
+            trafficLightSerialPort.drain(function(drainError) {
+                if (drainError) {
+                    console.error('Error draining serial port: ' + e);
+                }
+            });
+        }
+    });
+}
+
+function monitorJenkins() {
     getJson(jenkinsUrl, function(json) {
 
         var newStateIndex = 0; 
@@ -46,12 +61,20 @@ function monitorJenkins() {
 
         var newJobState = states[newStateIndex];
 
-        console.log('New TrafficLight state: ' + newJobState.method);
-
-        trafficLight[newJobState.method]();
+        writeSerialPortCommand(newJobState.command);
     });
 
     setTimeout(monitorJenkins, MONITOR_INTERVAL);
 }
 
-monitorJenkins();
+
+trafficLightSerialPort.open(function(error) {
+    if (error) {
+        console.error('Error opening serial port: ' + error);
+    }
+    else {
+        console.log('Serial port opened, starting monitor.');
+
+        monitorJenkins();
+    }
+});
