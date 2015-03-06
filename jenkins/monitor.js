@@ -1,9 +1,20 @@
+var SerialPort = require('serialport').SerialPort;
 var getJson = require('./get').json;
 
-var MONITOR_INTERVAL = 1000 * 5;
+var args = process.argv;
 
-var serialPortPath = '/dev/tty.usbmodem1421';
-var jenkinsUrl = 'http://localhost:8080/api/json?pretty=true&tree=jobs[color,name]';
+if (args[2] === '-h' || args[2] === '--help') {
+    showUsage(0);
+}
+else if (args.length !== 4) {
+    showUsage(1);
+}
+
+var MONITOR_INTERVAL = 1000 * 10;
+
+var jenkinsUrl = args[2].replace(/\/$/, '');
+var serialPortPath = args[3];
+var jenkinsApiUrl = jenkinsUrl + '/api/json?pretty=true&tree=jobs[color,name]';
 
 var states = [
     { color: 'blue', command: 'light green' },
@@ -14,7 +25,13 @@ var states = [
     { color: 'red_anime', command: 'flash red' },
 ];
 
-var trafficLightSerialPort = new SerialPort(serialPortPath, { baudRate: 9600 });
+var trafficLightSerialPort = new SerialPort(serialPortPath, { baudRate: 9600 }, false);
+var monitorIntervalId;
+
+function showUsage(exitStatusCode) {
+    console.log('usage: node monitor.js <jenkins_url> <serial_port_path>');
+    process.exit(exitStatusCode);
+}
 
 function parseState(job) {
     for (var i = 0; i < states.length; i++) {
@@ -31,22 +48,18 @@ function parseState(job) {
 function writeSerialPortCommand(command) {
     console.log('Writing command: ' + command);
 
-    trafficLightSerialPort.write(command + '$', function(writeError) {
-        if (writeError) {
-            console.error('Error writing command: ' + e);
-        }
-        else {
-            trafficLightSerialPort.drain(function(drainError) {
-                if (drainError) {
-                    console.error('Error draining serial port: ' + e);
-                }
-            });
+    trafficLightSerialPort.write(command + '$', function(error) {
+        if (error) {
+            console.error('Error writing to serial port: ' + error.message);
+
+            // Could try and re-open or poll for the connection again in the future
+            clearInterval(monitorIntervalId);
         }
     });
 }
 
 function monitorJenkins() {
-    getJson(jenkinsUrl, function(json) {
+    getJson(jenkinsApiUrl, function(json) {
 
         var newStateIndex = 0; 
 
@@ -63,18 +76,19 @@ function monitorJenkins() {
 
         writeSerialPortCommand(newJobState.command);
     });
-
-    setTimeout(monitorJenkins, MONITOR_INTERVAL);
 }
-
 
 trafficLightSerialPort.open(function(error) {
     if (error) {
-        console.error('Error opening serial port: ' + error);
+        console.error('Error opening serial port: ' + error.message);
     }
     else {
-        console.log('Serial port opened, starting monitor.');
+        console.log('Serial port opened, starting to monitor Jenkins.');
 
-        monitorJenkins();
+        // Can't explain this yet... but it seems as if the first command going out to the serial port
+        // happens too early or something (like it's not fully initialized/ready yet), and even though the
+        // write completed successfully -- nothing happens.  If the first action is deferred out ~2 seconds
+        // then it does seem to work.
+        monitorIntervalId = setInterval(monitorJenkins, MONITOR_INTERVAL);
     }
 });
