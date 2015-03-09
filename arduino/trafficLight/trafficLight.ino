@@ -11,6 +11,7 @@ int flashingPin = VOID_PIN;
 boolean flashingHigh;
 const unsigned long flashDuration = 750;
 unsigned long flashStartTime;
+String lastCommand;
 
 void setup() {
     Serial.begin(9600);
@@ -35,6 +36,13 @@ void loop() {
     if (Serial.available()) {
 
         String command = Serial.readStringUntil('$');
+        
+        if (command == lastCommand) {
+            return;
+        }
+        else {
+            lastCommand = command;
+        }
 
         if (command == "light red") {
             lightPinExclusive(RED_PIN);
