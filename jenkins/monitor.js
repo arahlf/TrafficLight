@@ -85,10 +85,8 @@ trafficLightSerialPort.open(function(error) {
     else {
         console.log('Serial port opened, starting to monitor Jenkins.');
 
-        // Can't explain this yet... but it seems as if the first command going out to the serial port
-        // happens too early or something (like it's not fully initialized/ready yet), and even though the
-        // write completed successfully -- nothing happens.  If the first action is deferred out ~2 seconds
-        // then it does seem to work.
+        monitorJenkins();
+
         monitorIntervalId = setInterval(monitorJenkins, MONITOR_INTERVAL);
     }
 });
