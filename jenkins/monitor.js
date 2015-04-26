@@ -1,20 +1,17 @@
+var Promise = require('bluebird');
 var SerialPort = require('serialport').SerialPort;
+var findConnectedArduino = require('./arduinoPortFinder').findConnectedArduino;
+var ArgumentsHandler = require('./argumentsHandler');
 var getJson = require('./get').json;
 
-var args = process.argv;
 
-if (args[2] === '-h' || args[2] === '--help') {
+var args = new ArgumentsHandler(process.argv);
+
+if (args.hasSpecifiedArgument('-h') || args.hasSpecifiedArgument('--help')) {
     showUsage(0);
-}
-else if (args.length !== 4) {
-    showUsage(1);
 }
 
 var MONITOR_INTERVAL = 1000 * 10;
-
-var jenkinsUrl = args[2].replace(/\/$/, '');
-var serialPortPath = args[3];
-var jenkinsApiUrl = jenkinsUrl + '/api/json?pretty=true&tree=jobs[color,name]';
 
 var states = [
     { color: 'blue', command: 'light green' },
@@ -25,12 +22,42 @@ var states = [
     { color: 'red_anime', command: 'flash red' },
 ];
 
-var trafficLightSerialPort = new SerialPort(serialPortPath, { baudRate: 9600 }, false);
-var monitorIntervalId;
+var monitorTimeoutId;
 
 function showUsage(exitStatusCode) {
-    console.log('usage: node monitor.js <jenkins_url> <serial_port_path>');
+    var helpUsage = [
+        'usage: node monitor.js [options] jenkins_url',
+        '',
+        '    -p    Name of the serial port to use.  If not specified, it will attempt to find a',
+        '          connected Arduino to use.'
+    ];
+
+    console.log(helpUsage.join('\n'));
+
     process.exit(exitStatusCode);
+}
+
+function getJenkinsApiUrl() {
+    return Promise.try(function() {
+        var lastArgumentValue = args.getLastArgumentValue();
+
+        if (!/^http[s]?:/.test(lastArgumentValue)) {
+            throw new Error('Invalid URL for argument jenkins_url: ' + lastArgumentValue);
+        }
+
+        var jenkinsUrl = lastArgumentValue.replace(/\/$/, '');
+
+        return jenkinsUrl + '/api/json?pretty=true&tree=jobs[color,name]';
+    });
+}
+
+function getArduinoPortPath() {
+    return Promise.try(function() {
+        if (args.hasSpecifiedArgument('-p')) {
+            return args.getArgumentValue('-p');
+        }
+        return findConnectedArduino();
+    });
 }
 
 function parseState(job) {
@@ -45,20 +72,20 @@ function parseState(job) {
     return states[0];
 }
 
-function writeSerialPortCommand(command) {
+function writeSerialPortCommand(serialPort, command) {
     console.log('Writing command: ' + command);
 
-    trafficLightSerialPort.write(command + '$', function(error) {
+    serialPort.write(command + '$', function(error) {
         if (error) {
             console.error('Error writing to serial port: ' + error.message);
 
             // Could try and re-open or poll for the connection again in the future
-            clearInterval(monitorIntervalId);
+            clearTimeout(monitorIntervalId);
         }
     });
 }
 
-function monitorJenkins() {
+function monitorJenkins(jenkinsApiUrl, serialPort) {
     getJson(jenkinsApiUrl, function(json) {
 
         var newStateIndex = 0; 
@@ -74,19 +101,33 @@ function monitorJenkins() {
 
         var newJobState = states[newStateIndex];
 
-        writeSerialPortCommand(newJobState.command);
+        writeSerialPortCommand(serialPort, newJobState.command);
+
+        monitorTimeoutId = setTimeout(monitorJenkins, MONITOR_INTERVAL);
     });
 }
 
-trafficLightSerialPort.open(function(error) {
-    if (error) {
-        console.error('Error opening serial port: ' + error.message);
-    }
-    else {
-        console.log('Serial port opened, starting to monitor Jenkins.');
+function start(jenkinsApiUrl, portPath) {
+    var serialPort = new SerialPort(portPath, { baudRate: 9600 }, false);
 
-        monitorJenkins();
+    serialPort.open(function(error) {
+        if (error) {
+            console.error('Error opening serial port: ' + error.message);
+        }
+        else {
+            console.log('Serial port opened, starting to monitor Jenkins.');
 
-        monitorIntervalId = setInterval(monitorJenkins, MONITOR_INTERVAL);
-    }
+            monitorJenkins(jenkinsApiUrl, serialPort);
+        }
+    });
+}
+
+Promise.join(getJenkinsApiUrl(), getArduinoPortPath(), function(jenkinsApiUrl, arduinoPortPath) {
+
+    start(jenkinsApiUrl, arduinoPortPath);
+})
+.catch(function(e) {
+    console.error(e.message);
+
+    process.exit(1);
 });
