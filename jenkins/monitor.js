@@ -1,8 +1,8 @@
 var Promise = require('bluebird');
 var SerialPort = require('serialport').SerialPort;
-var findConnectedArduino = require('./arduinoPortFinder').findConnectedArduino;
-var ArgumentsHandler = require('./argumentsHandler');
-var getJson = require('./get').json;
+var findConnectedArduino = require('./lib/arduinoPortFinder').findConnectedArduino;
+var ArgumentsHandler = require('./lib/argumentsHandler');
+var getJson = require('./lib/get').json;
 
 
 var args = new ArgumentsHandler(process.argv);
@@ -80,7 +80,7 @@ function writeSerialPortCommand(serialPort, command) {
             console.error('Error writing to serial port: ' + error.message);
 
             // Could try and re-open or poll for the connection again in the future
-            clearTimeout(monitorIntervalId);
+            clearTimeout(monitorTimeoutId);
         }
     });
 }
@@ -103,7 +103,7 @@ function monitorJenkins(jenkinsApiUrl, serialPort) {
 
         writeSerialPortCommand(serialPort, newJobState.command);
 
-        monitorTimeoutId = setTimeout(monitorJenkins, MONITOR_INTERVAL);
+        monitorTimeoutId = setTimeout(monitorJenkins.bind(undefined, jenkinsApiUrl, serialPort), MONITOR_INTERVAL);
     });
 }
 
