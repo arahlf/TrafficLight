@@ -1,35 +1,33 @@
-#include <IRremote.h>
+#include <IRremote.hpp>
 
-const unsigned long LIGHT_RED_KEY = 0xFFA25D;
-const unsigned long LIGHT_YELLOW_KEY = 0xFF629D;
-const unsigned long LIGHT_GREEN_KEY = 0xFFE21D;
-const unsigned long FLASH_RED_KEY = 0xFF22DD;
-const unsigned long FLASH_YELLOW_KEY = 0xFF02FD;
-const unsigned long FLASH_GREEN_KEY = 0xFFC23D;
-const unsigned long LIGHTS_OFF_KEY = 0xFFE01F;
+constexpr uint16_t LIGHT_RED_KEY = 0x45;
+constexpr uint16_t LIGHT_YELLOW_KEY = 0x46;
+constexpr uint16_t LIGHT_GREEN_KEY = 0x47;
+constexpr uint16_t FLASH_RED_KEY = 0x44;
+constexpr uint16_t FLASH_YELLOW_KEY = 0x40;
+constexpr uint16_t FLASH_GREEN_KEY = 0x43;
+constexpr uint16_t LIGHTS_OFF_KEY = 0x7;
 
-const int IR_PIN = 7;
-IRrecv irrecv(IR_PIN);
-decode_results results;
+constexpr uint8_t IR_RECEIVE_PIN = 7;
 
-const int RED_PIN = 4;
-const int YELLOW_PIN = 3;
-const int GREEN_PIN = 2;
+constexpr uint8_t RED_PIN = 4;
+constexpr uint8_t YELLOW_PIN = 3;
+constexpr uint8_t GREEN_PIN = 2;
 
-const int VOID_PIN= -1;
+constexpr uint8_t VOID_PIN= UINT8_MAX;
 
-const int pins[] = { RED_PIN, YELLOW_PIN, GREEN_PIN };
-const int pinCount = sizeof(pins) / sizeof(int);
+constexpr uint8_t pins[] = { RED_PIN, YELLOW_PIN, GREEN_PIN };
+constexpr uint8_t pinCount = sizeof(pins) / sizeof(pins[0]);
 
-int flashingPin = VOID_PIN;
-boolean flashingHigh;
-const unsigned long flashDuration = 750;
-unsigned long flashStartTime;
-unsigned long lastKeyValue;
+uint8_t flashingPin = VOID_PIN;
+bool flashingHigh;
+constexpr uint32_t flashDuration = 750;
+uint32_t flashStartTime;
+uint16_t lastKeyValue;
 
 void setup(){
     Serial.begin(9600);
-    irrecv.enableIRIn();
+    IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
     
     pinMode(RED_PIN, OUTPUT);
     pinMode(YELLOW_PIN, OUTPUT);
@@ -47,14 +45,14 @@ void loop() {
         }
     }
 
-    if (irrecv.decode(&results)) {
+    if (IrReceiver.decode()) {
+        Serial.println(IrReceiver.decodedIRData.command, HEX);
 
-        Serial.println(results.value, HEX);
-
-        unsigned long keyValue = results.value;
+        uint16_t keyValue = IrReceiver.decodedIRData.command;
+        bool isRepeat = (IrReceiver.decodedIRData.flags & IRDATA_FLAGS_IS_REPEAT);
         
-        if (keyValue == lastKeyValue || keyValue == REPEAT) {
-            irrecv.resume();
+        if (keyValue == lastKeyValue || isRepeat) {
+            IrReceiver.resume();
             return;
         }
         else {
@@ -83,23 +81,22 @@ void loop() {
             lightPinExclusive(VOID_PIN);
         }
 
-        irrecv.resume();
+        IrReceiver.resume();
     }
 }
 
-void lightPinExclusive(int pin) {
+void lightPinExclusive(uint8_t pin) {
     flashingPin = VOID_PIN;
     
-    for (int i = 0; i < pinCount; i++) {
+    for (uint8_t i = 0; i < pinCount; i++) {
         digitalWrite(pins[i], pins[i] == pin ? HIGH : LOW);
     }
 }
 
-void flashPinExclusive(int pin) {
+void flashPinExclusive(uint8_t pin) {
     lightPinExclusive(pin);
     
     flashingPin = pin;
     flashingHigh = true;
     flashStartTime = millis();
 }
-
